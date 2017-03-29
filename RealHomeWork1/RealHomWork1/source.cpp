@@ -7,6 +7,7 @@
 */
 #include <stdio.h>
 
+
 //함수 정의
 void displayGrade(int score);
 
