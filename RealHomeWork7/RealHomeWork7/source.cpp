@@ -76,7 +76,7 @@ void BuyDrink(int price) {
 	}
 	else {
 		printf("음료수를 구입했습니다.\r\n");
-		int change = haveMoney(-1 * price);
+		int change =(-1 * price);
 		haveMoney(change);
 		DisplaySaveMoney();
 	}

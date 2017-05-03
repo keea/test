@@ -9,6 +9,7 @@ int getBaseBall(int num1, int num2);
 int getStrike(int rNum1, int rNum2, int rNum3, int iNum1, int iNum2, int iNum3);
 int getBall(int rNum1, int rNum2, int rNum3, int iNum1, int iNum2, int iNum3);
 void CheckGameInfo(int strike, int ball, int count);
+int getInput();
 
 void main() {
 	srand(time(NULL));
@@ -23,21 +24,11 @@ void main() {
 		int inputNum1, inputNum2, inputNum3;
 		int checkRange = 1;
 
-		do
-		{
-			printf("1의 자리 숫자 3개를 입력해주세요 ex)1 2 3 : ");
-			scanf("%d %d %d", &inputNum1, &inputNum2, &inputNum3);
+		printf("1의 자리 숫자 3개를 입력해주세요 : ");
+		inputNum1 = getInput();
+		inputNum2 = getInput();
+		inputNum3 = getInput();
 
-			checkRange = (inputNum1 >= 9) && (inputNum2 >= 9) && (inputNum3 >= 9);
-		} while (checkRange);
-
-
-		/*int inputnum1 = getch() - '0';
-		printf("%d", inputnum1);
-		int inputnum2 = getch() - '0';
-		printf("%d", inputnum2);
-		int inputnum3 = getch() - '0';
-		printf("%d\r\n", inputnum3);*/
 
 		int checkStrike = getStrike(rand1, rand2, rand3, inputNum1, inputNum2, inputNum3);
 		int checkBall = getBall(rand1, rand2, rand3, inputNum1, inputNum2, inputNum3);
@@ -48,10 +39,25 @@ void main() {
 	}
 }
 
+//입력값을 체크한다.
+int getInput() {
+	int num = 0;
+
+	do
+	{
+		num = getch();
+
+	} while ((num<'0') || (num > '9'));
+
+	printf("%i ", num-'0');
+
+	return num - '0';
+}
+
 
 //게임 상태를 보여준다.
 void CheckGameInfo(int strike, int ball, int count) {
-	printf("%d 스트라이크\r\n%d 볼\r\n", strike, ball);
+	printf("\r\n%d 스트라이크\r\n%d 볼\r\n", strike, ball);
 	if (strike == 3) {
 		printf("%d번째후 맞추셨습니다.\r\n", count);
 		exit(0);
