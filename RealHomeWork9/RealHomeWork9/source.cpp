@@ -19,13 +19,13 @@ void main() {
 	int * snail = new int[cage*cage]; //동적으로 크기를 할당받는다.
 
 	int checkNum = cage; // 달팽이 칸
-	int count = 1; //처음에만 1로 초기화. 첫줄은 한번씩만 돌기 때문
+	int count = 1; //처음에만 1로 초기화. 첫줄은 한번만 돌기 때문
 
 	while (checkNum >= 0)
 	{
 		MakeSnail(cage,checkNum, cage*cage, snail);
 		count += 1;
-		if (count == 2) { //2번씩 돌면 채워놓은 칸이 작아짐.
+		if (count == 2) { //2번 돌면 채워놓은 칸이 작아짐.
 			count = 0;
 			checkNum -= 1;
 		}
