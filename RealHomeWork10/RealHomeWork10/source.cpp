@@ -34,6 +34,14 @@ void DisplayBalance(Bank * bank, int ArrNum);
 int GetBalance(Bank * bank, int ArrNum);
 void CtrlWithdraw(Bank * bank, int ArrNum);
 void Withdraw(Bank *bank, int arrNum, int money);
+void CtrlRemittance(Bank *bank, int arrNum);
+void DisplayUser(Bank *bank, int arrNum);
+int InputRemit(int arrNum, int regNum);
+void TransMoney(Bank * bank, int sender, int recever, int money);
+void CtrlDeleteUser(Bank *bank, int arrNum);
+void DeleteUser(Bank * bank, int arrNum);
+void CtrlDeleteUser(Bank * bank, int arrNum);
+int InputDeleteUser();
 
 void main() {
 	//처음 시작시 초기화
@@ -73,24 +81,35 @@ void Contorl(Bank *bank) {
 	{
 	case 1:
 		if (IsCtrlBlock(bank)) {
-			int ArrNum = CtrlAcc(bank, 1)-1;
-			CtrlDeposit(bank, ArrNum);
+			int ArrNum = CtrlAcc(bank, 1) - 1;
+			if(ArrNum != -1)
+				CtrlDeposit(bank, ArrNum);
 		}
 		break;
 	case 2:
 		if (IsCtrlBlock(bank)) {
 			int ArrNum = CtrlAcc(bank, 1) - 1;
-			CtrlWithdraw(bank, ArrNum);
+			if (ArrNum != -1)
+				CtrlWithdraw(bank, ArrNum);
 		}
 		break;
 	case 3:
 		if (IsCtrlBlock(bank)) {
+			if (PersonNum(bank) < 2) {
+				printf("등록된 사람 수가 적어서 이용 불가능 합니다.\r\n");
+			}
+			else {
+				int ArrNum = CtrlAcc(bank, 1) - 1;
+				if (ArrNum != -1)
+					CtrlRemittance(bank, ArrNum);
+			}
 		}
 		break;
 	case 4:
 		if (IsCtrlBlock(bank)) {
 			int ArrNum = CtrlAcc(bank, 1) - 1;
-			DisplayBalance(bank, ArrNum);
+			if (ArrNum != -1)
+				DisplayBalance(bank, ArrNum);
 		}
 		break;
 	case 5:
@@ -98,6 +117,9 @@ void Contorl(Bank *bank) {
 		break;
 	case 6:
 		if (IsCtrlBlock(bank)) {
+			int ArrNum = CtrlAcc(bank, 1) - 1;
+			if (ArrNum != -1)
+				CtrlDeleteUser(bank, ArrNum);
 		}
 		break;
 	case 0:
@@ -133,9 +155,6 @@ int PersonNum(Bank *bank) {
 	}
 	return perNum;
 }
-
-//출금
-
 //송금
 
 //계정 관련 컨트롤
@@ -147,9 +166,9 @@ int CtrlAcc(Bank *bank, int type) {
 		printf("아이디를 입력해주세요(최대 100자 ,취소 0) : ");
 		char * creatID = InputID();
 
-		if (strlen(creatID) == 0 && atoi(creatID) == '0') {
+		if (strcmp(creatID, "0") == 0) {
 			printf("이전화면으로 돌아갑니다.\r\n\r\n");
-			break;
+			return 0;
 		}
 
 		int pIndex = CheckId(bank, creatID);
@@ -169,7 +188,7 @@ int CtrlAcc(Bank *bank, int type) {
 			if(type==0)
 				printf("아이디가 중복되어 있습니다.\r\n");
 			else {
-				printf("아이디가 존재합니다.\r\n");
+				//printf("아이디가 존재합니다.\r\n");
 				return pIndex;
 			}
 		}
@@ -184,8 +203,11 @@ double CreatePwd() {
 		printf("비밀번호를 입력해주세요(2자 이상, 종료시 0) : ");
 		scanf("%lf", &pwd);
 		ClearLineFromReadBuffer();
-		if (pwd == 0)
+		if (pwd == 0) {
+			printf("이전 화면으로 되돌아갑니다.\r\n\r\n");
 			return 0;
+		}
+			
 	}
 	return pwd;
 }
@@ -248,14 +270,6 @@ void Destory(Bank *bank) {
 	}
 }
 
-
-//아이디 삭제
-
-//입력버퍼비우기
-void ClearLineFromReadBuffer() {
-	while (getchar() != '\n');
-}
-
 //입금
 void Deposit(Bank *bank, int arrNum, int money) {
 	(*bank).person[arrNum].money += money;
@@ -301,7 +315,7 @@ void CtrlDeposit(Bank * bank, int ArrNum)
 {
 	int auth = Auth(bank, ArrNum);
 
-	if (auth != -1) {
+	if (auth) {
 		char * text = "입금";
 		int money = InputMoney(text);
 		if(money!=0)
@@ -312,7 +326,7 @@ void CtrlDeposit(Bank * bank, int ArrNum)
 //잔액조회
 void DisplayBalance(Bank * bank, int ArrNum) {
 	int auth = Auth(bank, ArrNum);
-	if (auth != -1) {
+	if (auth) {
 		printf("잔액은 %d원 입니다.\r\n", GetBalance(bank, ArrNum));
 	}
 }
@@ -322,24 +336,154 @@ int GetBalance(Bank * bank, int ArrNum) {
 	return (*bank).person[ArrNum].money;
 }
 
-//출금컨트롤
-void CtrlWithdraw(Bank * bank, int ArrNum) {
-	int auth = Auth(bank, ArrNum);
+//돈 인출 관련 컨트롤
+int CtrlMinusMoney(Bank * bank, int ArrNum, char * text) {
 	int haveBalance = GetBalance(bank, ArrNum); //가지고 있는 금액
 	int withdraw;
-	char * text = "출금";
 	do
 	{
 		withdraw = InputMoney(text); //값이 0이 리턴됨
 		if (withdraw > haveBalance) {
-			printf("출금 금액이 잔액보다 많습니다.\r\n");
+			printf("%s 금액이 잔액보다 많습니다.\r\n", text);
 		}
 	} while (withdraw > haveBalance);
-	Withdraw(bank, ArrNum, withdraw);
+
+	return withdraw;
+}
+
+//출금컨트롤
+void CtrlWithdraw(Bank * bank, int ArrNum) {
+	int auth = Auth(bank, ArrNum);
+	if (auth) {
+		int withdraw = CtrlMinusMoney(bank, ArrNum, "출금");
+		Withdraw(bank, ArrNum, withdraw);
+	}
 }
 
 //출금
 void Withdraw(Bank *bank, int arrNum, int money) {
-	(*bank).person[arrNum].money += money*-1;
+	(*bank).person[arrNum].money += money*(-1);
 	printf("현재 잔액은 %d원 입니다.\r\n", (*bank).person[arrNum].money);
+}
+
+//송금 컨트롤
+void CtrlRemittance(Bank *bank, int arrNum) {
+	int auth = Auth(bank, arrNum);
+	if (auth) {
+		//송금할 사람 보여주기
+		DisplayUser(bank, arrNum);
+		int input = InputRemit(arrNum, PersonNum(bank));
+		if (input != 0) {
+			int money = CtrlMinusMoney(bank, arrNum, "송금");
+			input -= 1;
+			TransMoney(bank, arrNum, input, money);
+		}
+	}
+}
+
+//송금 은행, 보낸이, 받는이, 돈
+void TransMoney(Bank * bank, int sender, int recever, int money) {
+	(*bank).person[sender].money += money*(-1);
+	(*bank).person[recever].money += money;
+	printf("%d원 송금 완료했습니다.\r\n", money);
+	printf("현재 잔액은 %d원 입니다.\r\n", (*bank).person[sender].money);
+}
+
+//계정 정보를 삭제한다.
+void CtrlDeleteUser(Bank * bank, int arrNum)
+{
+	int auth = Auth(bank, arrNum);
+	if (auth) {
+		if (InputDeleteUser()) {
+			printf("계정이 삭제되었습니다.\r\n");
+			DeleteUser(bank, arrNum);
+		}
+		else {
+			printf("계정이 삭제를 취소하였습니다.\r\n");
+		}
+	}
+}
+
+void DeleteUser(Bank * bank, int arrNum) {
+	int lastNum = PersonNum(bank) ;
+	int startNum = arrNum;
+	(*bank).person[arrNum] = {}; //일단 값 초기화
+	while (startNum < lastNum)
+	{
+		int tempNum = startNum + 1;
+		if (tempNum < lastNum) {
+			Person tempUser;
+			tempUser.index = startNum;
+			tempUser.id = (*bank).person[tempNum].id;
+			tempUser.money = (*bank).person[tempNum].money;
+			tempUser.password = (*bank).person[tempNum].password;
+
+			(*bank).person[startNum] = tempUser;
+		}
+
+		if (startNum == lastNum - 1) {
+			(*bank).person[startNum] = {}; //마지막 값 역시 초기화
+		}
+		startNum += 1;
+	}
+}
+
+//계정 정보 삭제 관련 입력 컨트롤 return 0 - 취소, 1 - 삭제
+int InputDeleteUser() {
+	char choseMenu;
+	do
+	{
+		printf("계정을 삭제하시겠습니까?(y/n)");
+		choseMenu = getch();
+		printf("%c\r\n", choseMenu);
+		if (choseMenu == 'y') {
+			return 1;
+		}
+		else if (choseMenu == 'n') {
+			return 0;
+		}
+		else {
+			printf("잘못된 입력값입니다.\r\n");
+		}
+
+	} while (1);
+}
+
+//송금 입력 컨트롤
+int InputRemit(int arrNum ,int regNum) {
+	int input;
+	do
+	{
+		printf("\r\n송금하실 아이디를 선택해주세요(종료-0) : ");
+		scanf("%d", &input);
+		ClearLineFromReadBuffer();
+		if ((0 <= input && input <= regNum) && input != arrNum+1) {
+			return input;
+		}
+		else if (input==0) {
+			return 0;
+		}
+		else {
+			printf("잘못된 입력값입니다.\r\n");
+		}
+	} while (1);
+}
+
+//유저 정보보여주기(아이디, index)
+void DisplayUser(Bank *bank, int arrNum) {
+	int regNum = PersonNum(bank); //총 사람 수
+	int index = 0;
+	while (index < regNum)
+	{
+		if (index != arrNum) {
+			Person user = (*bank).person[index];
+			printf("%d. %s\r\n", user.index, user.id);
+		}
+		index += 1;
+	}
+}
+
+//입력버퍼비우기
+void ClearLineFromReadBuffer() {
+	while (getchar() != '\n');
 }
