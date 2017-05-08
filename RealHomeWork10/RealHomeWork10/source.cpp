@@ -76,7 +76,7 @@ void Contorl(Bank *bank) {
 	int chose; //메뉴 입력값을 저장한다.
 	printf("메뉴를 선택해주세요 : ");
 	chose = getch();
-	printf("%d\r\n", chose - '0');
+	printf("%c\r\n", chose);
 	switch (chose - '0')
 	{
 	case 1:
@@ -127,7 +127,7 @@ void Contorl(Bank *bank) {
 		exit(0);
 		break;
 	default:
-		printf("잘못된 입력값입니다.\r\n");
+		printf("\r\n잘못된 입력값입니다.\r\n");
 		break;
 	}
 }
