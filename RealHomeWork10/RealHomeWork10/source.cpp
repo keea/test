@@ -35,13 +35,15 @@ int GetBalance(Bank * bank, int ArrNum);
 void CtrlWithdraw(Bank * bank, int ArrNum);
 void Withdraw(Bank *bank, int arrNum, int money);
 void CtrlRemittance(Bank *bank, int arrNum);
-void DisplayUser(Bank *bank, int arrNum);
+void DisplayUser(Bank *bank, int arrNum, int page);
 int InputRemit(int arrNum, int regNum);
 void TransMoney(Bank * bank, int sender, int recever, int money);
 void CtrlDeleteUser(Bank *bank, int arrNum);
 void DeleteUser(Bank * bank, int arrNum);
 void CtrlDeleteUser(Bank * bank, int arrNum);
 int InputDeleteUser();
+
+#define MAX_PAGE  3 //최대 페이지 수
 
 void main() {
 	//처음 시작시 초기화
@@ -155,7 +157,6 @@ int PersonNum(Bank *bank) {
 	}
 	return perNum;
 }
-//송금
 
 //계정 관련 컨트롤
 // 0 : 아이디 생성, 1 : 아이디 찾기
@@ -371,12 +372,25 @@ void CtrlRemittance(Bank *bank, int arrNum) {
 	int auth = Auth(bank, arrNum);
 	if (auth) {
 		//송금할 사람 보여주기
-		DisplayUser(bank, arrNum);
-		int input = InputRemit(arrNum, PersonNum(bank));
-		if (input != 0) {
+		DisplayUser(bank, arrNum, 1);
+
+		
+		while (1)
+		{
+			int input = InputRemit(arrNum, PersonNum(bank));
+		if (input > 0) {
 			int money = CtrlMinusMoney(bank, arrNum, "송금");
 			input -= 1;
 			TransMoney(bank, arrNum, input, money);
+			return;
+		}
+		else if (input != 0) {
+			int currentPage = input * -1;
+			DisplayUser(bank, arrNum, currentPage);
+		}
+		else if (input == 0) {
+			return;
+			}
 		}
 	}
 }
@@ -404,28 +418,20 @@ void CtrlDeleteUser(Bank * bank, int arrNum)
 	}
 }
 
+//유저 정보 삭제
 void DeleteUser(Bank * bank, int arrNum) {
-	int lastNum = PersonNum(bank) ;
-	int startNum = arrNum;
+	int lastNum = PersonNum(bank)-1 ;
 	(*bank).person[arrNum] = {}; //일단 값 초기화
-	while (startNum < lastNum)
-	{
-		int tempNum = startNum + 1;
-		if (tempNum < lastNum) {
-			Person tempUser;
-			tempUser.index = startNum;
-			tempUser.id = (*bank).person[tempNum].id;
-			tempUser.money = (*bank).person[tempNum].money;
-			tempUser.password = (*bank).person[tempNum].password;
 
-			(*bank).person[startNum] = tempUser;
-		}
+	Person tempUser;
+	tempUser.index = (*bank).person[lastNum].index;
+	tempUser.id = (*bank).person[lastNum].id;
+	tempUser.money = (*bank).person[lastNum].money;
+	tempUser.password = (*bank).person[lastNum].password;
 
-		if (startNum == lastNum - 1) {
-			(*bank).person[startNum] = {}; //마지막 값 역시 초기화
-		}
-		startNum += 1;
-	}
+	(*bank).person[arrNum] = tempUser;
+
+	(*bank).person[lastNum] = {}; //마지막 값 역시 초기화
 }
 
 //계정 정보 삭제 관련 입력 컨트롤 return 0 - 취소, 1 - 삭제
@@ -450,11 +456,12 @@ int InputDeleteUser() {
 }
 
 //송금 입력 컨트롤
-int InputRemit(int arrNum ,int regNum) {
+int InputRemit(int arrNum , int regNum) {
+	static int currentPage = 1;
 	int input;
 	do
 	{
-		printf("\r\n송금하실 아이디를 선택해주세요(종료-0) : ");
+		printf("\r\n송금하실 아이디를 선택해주세요(종료:0, 다음페이지:-1) : ");
 		scanf("%d", &input);
 		ClearLineFromReadBuffer();
 		if ((0 <= input && input <= regNum) && input != arrNum+1) {
@@ -463,27 +470,42 @@ int InputRemit(int arrNum ,int regNum) {
 		else if (input==0) {
 			return 0;
 		}
+		else if (input == -1) {
+			currentPage += 1;
+			return -1 * currentPage;
+		}
 		else {
-			printf("잘못된 입력값입니다.\r\n");
+			printf("잘못된 입력값입니다 %d .\r\n", input);
+			
 		}
 	} while (1);
 }
 
-//유저 정보보여주기(아이디, index)
-void DisplayUser(Bank *bank, int arrNum) {
+//유저 정보보여주기(아이디, index, 현재 페이지)
+void DisplayUser(Bank *bank, int arrNum, int page) {
 	int regNum = PersonNum(bank); //총 사람 수
-	int index = 0;
-	while (index < regNum)
+	int index = (page-1) * MAX_PAGE;
+
+	int maxPage = ((PersonNum(bank) - 1) / MAX_PAGE)+1;
+	int cnt = 0;
+
+	while (cnt < MAX_PAGE)
 	{
 		if (index != arrNum) {
 			Person user = (*bank).person[index];
-			printf("%d. %s\r\n", user.index, user.id);
+			if (user.index != 0) {
+				printf("%d. %s\r\n", user.index, user.id);
+			}
+			cnt += 1;
 		}
 		index += 1;
-	}
+	} 
+	if(page <= maxPage)
+		printf("%d/%d\r\n", page, maxPage);
 }
 
 //입력버퍼비우기
 void ClearLineFromReadBuffer() {
 	while (getchar() != '\n');
 }
+
