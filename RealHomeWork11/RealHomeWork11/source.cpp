@@ -6,7 +6,7 @@ private:
 	
 	virtual void Say() = 0;
 public:
-	virtual void Action() = 0;
+	virtual void Action();
 	void SayHello();
 };
 
