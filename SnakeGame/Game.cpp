@@ -23,7 +23,8 @@ void Game::Init() {
 	aniTickCount = GetTickCount();
 	snakeCtrl->Init(10,10, SNAKE_AHEAD::RIGHT);
 	itemCtrl->Init();
-	
+	scoreCtrl->Init();
+
 	mapCtrl->SettingView(&view);
 	snakeCtrl->SettingView(&view);
 	itemCtrl->SettingView(&view);
@@ -103,4 +104,6 @@ Game::~Game()
 {
 	delete mapCtrl;
 	delete snakeCtrl;
+	delete itemCtrl;
+	delete scoreCtrl;
 }

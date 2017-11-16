@@ -14,6 +14,7 @@ private:
 	Score * score;
 public:
 	ScoreCtrl(Score * _score);
+	void Init();
 	void SetItemScore(bool isTrue, int add); //æ∆¿Ã≈€ »πµÊΩ√ ¡°ºˆ »πµÊ
 	void SettingView(GameView * view);
 };

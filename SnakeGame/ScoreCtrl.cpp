@@ -14,6 +14,11 @@ ScoreCtrl::ScoreCtrl(Score * _score)
 	score = _score;
 }
 
+void ScoreCtrl::Init()
+{
+	score->SetScore(0);
+}
+
 void ScoreCtrl::SetItemScore(bool isTrue, int add) 
 {
 	if (isTrue) 
